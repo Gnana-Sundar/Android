@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">PENTA-TVM</string>
+
+    <string-array name="active">
+        <item>ENABLE</item>
+        <item>DISABLE</item>
+    </string-array>
+</resources>
