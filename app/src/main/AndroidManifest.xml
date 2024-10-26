@@ -27,12 +27,17 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".ScannerActivity"
+            android:name=".Masters.ProductUpdateActivity"
             android:exported="false" />
         <activity
-            android:name=".Masters.ReportsActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:name=".Masters.ReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Masters.StockActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ScannerActivity"
+            android:exported="false" />
         <activity
             android:name=".Masters.MotorMaster"
             android:exported="false"
@@ -54,11 +59,11 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".SplashScreen"
+            android:name=".MainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ConfirmActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
@@ -75,7 +80,7 @@
             android:stateNotNeeded="true"
             android:theme="@style/zxing_CaptureTheme" />
         <activity
-            android:name=".ConfirmActivity"
+            android:name=".SplashScreen"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

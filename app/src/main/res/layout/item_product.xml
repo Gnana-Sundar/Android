@@ -17,20 +17,10 @@
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:stretchColumns="1,2,3,4,5,6,7,8,9">
+            android:stretchColumns="1,2,3,4,5,6,7">
 
             <TableRow android:background="@color/white">
 
-                <TextView
-                    android:id="@+id/prod_motor_no"
-                    android:layout_gravity="center"
-                    android:width="100dp"
-                    android:gravity="start"
-                    android:padding="10dp"
-                    android:text="Apple"
-                    android:textColor="@color/black"
-                    android:textSize="14dp"
-                    android:textStyle="bold" />
                 <TextView
                     android:id="@+id/prod_name"
                     android:layout_gravity="center"
@@ -60,17 +50,6 @@
                     android:gravity="start"
                     android:padding="10dp"
                     android:text="A"
-                    android:textColor="@color/black"
-                    android:textSize="14dp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/qty"
-                    android:layout_gravity="center"
-                    android:width="100dp"
-                    android:gravity="start"
-                    android:padding="10dp"
-                    android:text="100"
                     android:textColor="@color/black"
                     android:textSize="14dp"
                     android:textStyle="bold" />

@@ -10,6 +10,9 @@
         <item android:id="@+id/nav_prod_master"
             android:icon="@drawable/product"
             android:title="Product Master"/>
+        <item android:id="@+id/nav_prod_stock"
+            android:icon="@drawable/stock"
+            android:title="Stock Product"/>
     </group>
     <group android:id="@+id/reports">
         <item android:id="@+id/nav_reports"

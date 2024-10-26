@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -33,6 +35,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.sundar.devtech.Adapter.MotorAdapter;
 import com.sundar.devtech.DatabaseController.RequestURL;
+import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Models.EmployeeModel;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.R;
@@ -47,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MotorMaster extends AppCompatActivity {
+    NetworkChangeListener networkChangeListener = new NetworkChangeListener();
     private ImageView BACK_PRESS,APPBAR_BTN;
     private TextView APPBAR_TITLE;
     private TextInputEditText MOTOR_NO, MOTOR_RUN_HEX, MOTOR_STATUS_HEX;
@@ -182,9 +186,15 @@ public class MotorMaster extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
         select();
     }
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeListener);
+    }
     public void insert() {
         String motor_no = MOTOR_NO.getText().toString().trim();
         String run_hex = MOTOR_RUN_HEX.getText().toString().trim();

@@ -8,7 +8,6 @@ public class RequestURL {
     public final static String motor_delete = "http://192.168.1.3:8080/devtech/motormaster/motordelete.php";
     //-------------------------------------------------------------------------------------------------------------
     // PRODUCT MASTER URL
-    public final static String motorNo_fetch = "http://192.168.1.3:8080/devtech/productmaster/fetchmotor.php";
     public final static String prod_insert = "http://192.168.1.3:8080/devtech/productmaster/prodinsert.php";
     public final static String prod_fetch = "http://192.168.1.3:8080/devtech/productmaster/prodfetch.php";
     public final static String prod_update = "http://192.168.1.3:8080/devtech/productmaster/produpdate.php";
@@ -22,6 +21,17 @@ public class RequestURL {
 
     //-------------------------------------------------------------------------------------------------------------
 
+    public final static String prod_stock_insert = "http://192.168.1.3:8080/devtech/prodstock/prodstockinsert.php";
+    public final static String prod_stock_fetch = "http://192.168.1.3:8080/devtech/prodstock/prodstockfetch.php";
+    public final static String prod_stock_update = "http://192.168.1.3:8080/devtech/prodstock/prodstockupdate.php";
+    public final static String prod_stock_delete = "http://192.168.1.3:8080/devtech/prodstock/prodstockdelete.php";
+    public final static String motorNo_fetch = "http://192.168.1.3:8080/devtech/fetchmotor.php";
+
+
+    //-------------------------------------------------------------------------------------------------------------
     public final static String emp_login = "http://192.168.1.3:8080/devtech/login.php";
     public final static String product = "http://192.168.1.3:8080/devtech/product.php";
+    public final static String sales_insert = "http://192.168.1.3:8080/devtech/salesinsert.php";
+
+    //-------------------------------------------------------------------------------------------------------------
 }

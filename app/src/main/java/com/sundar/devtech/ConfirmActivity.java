@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
@@ -15,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -24,8 +27,12 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.material.button.MaterialButton;
 import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Interfaces.MotorCommandCallback;
+import com.sundar.devtech.Internet.NetworkChangeListener;
+import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Models.ProductModel;
+import com.sundar.devtech.Models.SalesModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.ByteConvertor;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.MotorService;
 
@@ -39,13 +46,14 @@ import java.util.Map;
 
 public class ConfirmActivity extends AppCompatActivity {
 
+    NetworkChangeListener networkChangeListener = new NetworkChangeListener();
     private ImageView BACK_PRESS,APPBAR_BTN;
     private TextView APPBAR_TITLE;
     private MaterialButton BUY,CANCEL;
     private CustomAlertDialog customAlertDialog;
     private ImageView PROD_IMAGE;
     private TextView PROD_NAME,PROD_DESC,PROD_SPEC;
-    private String run_hex,status_hex;
+    private String motor_id,prod_id,emp_id,run_hex,status_hex;
     private MotorService motorService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,11 +89,6 @@ public class ConfirmActivity extends AppCompatActivity {
                 builder.setPositiveButton("CONFIRM", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // Show progress dialog
-                        CustomAlertDialog alertDialog = new CustomAlertDialog(ConfirmActivity.this);
-                        AlertDialog progressDialog = alertDialog.alterDialog();
-                        progressDialog.show();
-
                         runCommand();
                     }
                 });
@@ -101,7 +104,6 @@ public class ConfirmActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
-
 
         CANCEL.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,18 +134,20 @@ public class ConfirmActivity extends AppCompatActivity {
     }
 
     public void fetchProduct(){
-        ArrayList<ProductModel> productModels = SlotDetailActivity.productModels;
+        ArrayList<SalesModel> salesModels = SlotDetailActivity.salesModels;
 
-        for (ProductModel productModel:productModels){
-            Bitmap bitmap = decodeBase64(productModel.getProd_image());
+        for (SalesModel salesModel:salesModels){
+            Bitmap bitmap = decodeBase64(salesModel.getProd_image());
             PROD_IMAGE.setImageBitmap(bitmap);
-            PROD_NAME.setText(productModel.getProd_name());
-            PROD_DESC.setText(productModel.getProd_desc());
-            PROD_SPEC.setText(productModel.getProd_spec());
+            PROD_NAME.setText(salesModel.getProd_name());
+            PROD_DESC.setText(salesModel.getProd_desc());
+            PROD_SPEC.setText(salesModel.getProd_spec());
+            prod_id = salesModel.getProd_id();
         }
 
         Intent intent = getIntent();
 
+        emp_id = intent.getStringExtra("emp_id");
         run_hex = intent.getStringExtra("run_hex");
         status_hex = intent.getStringExtra("status_hex");
     }
@@ -154,32 +158,94 @@ public class ConfirmActivity extends AppCompatActivity {
     }
 
     public void runCommand() {
+
+        CustomAlertDialog alertDialog = new CustomAlertDialog(ConfirmActivity.this);
+        AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
+        progressDialog.show();
+
         motorService.MotorOn(run_hex, status_hex, new MotorCommandCallback() {
             @Override
             public void onStatusCommandResult(String response) {
 
-                TextView titleView = new TextView(ConfirmActivity.this);
-                titleView.setText(response);
+                byte[] responseBytes = ByteConvertor.hexStringToByteArray(response);
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(ConfirmActivity.this);
-                alert.setCustomTitle(titleView);
-
-                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                if (responseBytes != null && responseBytes.length >= 5) {
+                    if (responseBytes[2] == 0x02 && responseBytes[4] == 0x00) {
+                        progressDialog.dismiss();
+                        insert();
+                    } else {
+                        progressDialog.dismiss();
+                        Toast.makeText(ConfirmActivity.this, "Server Error. Please Contact Administrator", Toast.LENGTH_SHORT).show();
                     }
-                });
-
-                alert.show();
+                } else {
+                    progressDialog.dismiss();
+                    Toast.makeText(ConfirmActivity.this, "Server Error. Please Contact Administrator", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
+    public void insert() {
+        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.sales_insert,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.equalsIgnoreCase("success")){
+                            Intent intent = new Intent(ConfirmActivity.this, SuccessActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+
+                            Toast.makeText(ConfirmActivity.this, "Operation finished with ID 0, no fault detected.", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(ConfirmActivity.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                    Toast.makeText(ConfirmActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ConfirmActivity.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        ){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("motor_id", motor_id);
+                params.put("prod_id", prod_id);
+                params.put("emp_id",emp_id);
+                params.put("qty", "1");
+                return params;
+            }
+        };
+        RequestQueue requestQueue = Volley.newRequestQueue(ConfirmActivity.this);
+        requestQueue.add(request);
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
+        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
         fetchProduct();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeListener);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(ConfirmActivity.this, ScannerActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

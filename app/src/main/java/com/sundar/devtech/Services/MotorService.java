@@ -46,21 +46,21 @@ public class MotorService implements MotorController {
             mUsbManager.requestPermission(targetDevice, permissionIntent);
             return true;
         } else {
-            Toast.makeText(context, "No USB device connected.", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "No USB device connected.", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
 
     @Override
     public void MotorOn(String startCommand, String statusCommand, MotorCommandCallback callback) {
-       StartCommand("01 05 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 70 48");
+        StartCommand(startCommand);
 
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                String result = StatusCommand("01 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 D0 E8");
+                String statusResponse = StatusCommand(statusCommand);
                 if (callback != null) {
-                    callback.onStatusCommandResult(result);
+                    callback.onStatusCommandResult("Status Command Response: " + statusResponse);
                 }
             }
         }, 5000);
@@ -93,12 +93,7 @@ public class MotorService implements MotorController {
             byte[] commandBytes = ByteConvertor.hexStringToByteArray(command.replaceAll(" ", ""));
             usbDevices.sendCommand(serialPort, commandBytes);
 
-            CustomAlertDialog alertDialog = new CustomAlertDialog(context);
-            AlertDialog progressDialog = alertDialog.alterDialog();
-            progressDialog.show();
-
             String response = usbDevices.listenForResponse(serialPort);
-            progressDialog.dismiss();
 
             return response;
 

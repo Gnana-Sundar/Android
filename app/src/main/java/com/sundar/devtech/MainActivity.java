@@ -9,7 +9,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
@@ -27,8 +29,12 @@ import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.EmployeeMaster;
 import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Masters.ProductMaster;
-import com.sundar.devtech.Masters.ReportsActivity;
+import com.sundar.devtech.Masters.ReportActivity;
+import com.sundar.devtech.Masters.StockActivity;
 import com.sundar.devtech.Services.DateAndTime;
+import com.sundar.devtech.Services.SendMail;
+
+import javax.mail.MessagingException;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -46,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        sendEmailInBackground("rbj0005@gmail.com", "Hello", "How Are you regin");
 
         navigationView = findViewById(R.id.side_navigation);
         navigationView.setNavigationItemSelectedListener(MainActivity.this);
@@ -69,6 +77,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     }
+    private void sendEmailInBackground(String recipientEmail, String subject, String bodyText) {
+        new Thread(() -> {
+            SendMail mailSender = new SendMail();
+            try {
+                mailSender.sendEmailWithAttachment(recipientEmail, subject, bodyText);
+                runOnUiThread(() -> showToast("Email sent successfully!"));
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                runOnUiThread(() -> showToast("Failed to send email: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+
 
     private void startLiveTime() {
        runnable = new Runnable() {
@@ -86,15 +111,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onStart() {
         super.onStart();
-//        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-//        registerReceiver(networkChangeListener,filter);
+        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         handler.removeCallbacks(runnable);
-//        unregisterReceiver(networkChangeListener);
+        unregisterReceiver(networkChangeListener);
     }
 
     @Override
@@ -107,8 +132,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(MainActivity.this, EmployeeMaster.class));
         }else if (id == R.id.nav_motor_master){
             startActivity(new Intent(MainActivity.this, MotorMaster.class));
-        }else if (id == R.id.reports) {
-            startActivity(new Intent(MainActivity.this, ReportsActivity.class));
+        }else if (id == R.id.nav_reports) {
+            startActivity(new Intent(MainActivity.this, ReportActivity.class));
+        }else if (id == R.id.nav_prod_stock) {
+            startActivity(new Intent(MainActivity.this, StockActivity.class));
         }else if (id == R.id.nav_logout) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this, R.style.AlertDialogTheme);
             View view1 = LayoutInflater.from(MainActivity.this).inflate(R.layout.warning_dialog,

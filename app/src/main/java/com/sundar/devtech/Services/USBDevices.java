@@ -40,17 +40,29 @@ public class USBDevices {
 
     public String listenForResponse(UsbSerialPort serialPort) {
         try {
-            byte[] buffer = new byte[20]; // Adjust size based on expected response
-            int bytesRead = serialPort.read(buffer, 3000); // Read with a timeout
-            if (bytesRead > 0) {
-                return ByteConvertor.byteArrayToHex(buffer);
-            } else {
-                Toast.makeText(context, "No response received", Toast.LENGTH_SHORT).show();
+            byte[] buffer = new byte[20];
+            int totalBytesRead = 0;
+
+            // Loop to ensure full 20 bytes are read
+            while (totalBytesRead < buffer.length) {
+                byte[] tempBuffer = new byte[buffer.length - totalBytesRead]; // Remaining bytes to read
+                int bytesRead = serialPort.read(tempBuffer, 3000); // Use available read method
+
+                if (bytesRead > 0) {
+                    System.arraycopy(tempBuffer, 0, buffer, totalBytesRead, bytesRead);
+                    totalBytesRead += bytesRead;
+                } else {
+                    Toast.makeText(context, "No response received", Toast.LENGTH_SHORT).show();
+                    return "no response";
+                }
             }
+
+            return ByteConvertor.byteArrayToHex(buffer);
+
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(context, "Failed to read response", Toast.LENGTH_SHORT).show();
+            return "no response";
         }
-        return "no response";
     }
 }

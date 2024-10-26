@@ -39,6 +39,12 @@ public class SuccessActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(SuccessActivity.this, ScannerActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

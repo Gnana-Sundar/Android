@@ -7,7 +7,9 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -26,6 +28,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 import com.sundar.devtech.DatabaseController.RequestURL;
+import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Scanner.CaptureAct;
 import com.sundar.devtech.Services.CustomAlertDialog;
@@ -34,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ScannerActivity extends AppCompatActivity {
-
+    NetworkChangeListener networkChangeListener = new NetworkChangeListener();
     private ImageView BACK_PRESS,Login_BTN;
     private TextView APPBAR_TITLE;
     private AppCompatButton scannerButton;
@@ -98,7 +101,7 @@ public class ScannerActivity extends AppCompatActivity {
     public void userLogin(){
         // Show progress dialog
         CustomAlertDialog dialog = new CustomAlertDialog(this);
-        AlertDialog progressDialog = dialog.alterDialog();
+        AlertDialog progressDialog = dialog.pleaseWaitDialog();
         progressDialog.show();
 
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.emp_login,
@@ -120,6 +123,7 @@ public class ScannerActivity extends AppCompatActivity {
                             Toast.makeText(ScannerActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
                         }
                         else {
+                            progressDialog.dismiss();
                             Toast.makeText(ScannerActivity.this, response, Toast.LENGTH_SHORT).show();
                         }
 
@@ -127,6 +131,7 @@ public class ScannerActivity extends AppCompatActivity {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                progressDialog.dismiss();
                 if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
                     Toast.makeText(ScannerActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 } else {
@@ -175,4 +180,18 @@ public class ScannerActivity extends AppCompatActivity {
             alertDialog.show();
         }
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeListener);
+    }
+
 }

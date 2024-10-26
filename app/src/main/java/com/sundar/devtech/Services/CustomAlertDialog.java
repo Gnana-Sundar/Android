@@ -15,7 +15,7 @@ public class CustomAlertDialog{
         this.context = context;
     }
 
-    public AlertDialog alterDialog(){
+    public AlertDialog pleaseWaitDialog(){
         AlertDialog progressDialog = new AlertDialog.Builder(context)
                 .setTitle("Processing")
                 .setMessage("Please wait...")

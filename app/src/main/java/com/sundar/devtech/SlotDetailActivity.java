@@ -6,7 +6,9 @@ import androidx.appcompat.widget.AppCompatButton;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,9 +26,11 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.sundar.devtech.DatabaseController.RequestURL;
+import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.Models.ProductModel;
+import com.sundar.devtech.Models.SalesModel;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.MotorService;
 
@@ -39,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SlotDetailActivity extends AppCompatActivity {
+    NetworkChangeListener networkChangeListener = new NetworkChangeListener();
     private ImageView BACK_PRESS,APPBAR_BTN;
     private TextView APPBAR_TITLE,LOGGED_USER;
     private TextInputEditText SLOT_NUMBERS;
@@ -46,7 +51,7 @@ public class SlotDetailActivity extends AppCompatActivity {
     private MaterialButton NUM0,NUM1,NUM2,NUM3,NUM4,NUM5,NUM6,NUM7,NUM8,NUM9;
     private AppCompatButton CLEAR,CANCEL,CONFIRM;
     private MotorService motorService;
-    public static ArrayList<ProductModel> productModels = new ArrayList<>();
+    public static ArrayList<SalesModel> salesModels = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,9 +112,7 @@ public class SlotDetailActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     String currentText = SLOT_NUMBERS.getText().toString();
 
-                    // Check if the current text length is less than 2
                     if (currentText.length() < 2) {
-                        // If SLOT_NUMBERS is empty or equals to "0", replace it with the button's text
                         if (currentText.isEmpty()) {
                             SLOT_NUMBERS.setText(b.getText().toString());
                         } else {
@@ -164,7 +167,7 @@ public class SlotDetailActivity extends AppCompatActivity {
 
         // Show progress dialog
         CustomAlertDialog dialog = new CustomAlertDialog(this);
-        AlertDialog progressDialog = dialog.alterDialog();
+        AlertDialog progressDialog = dialog.pleaseWaitDialog();
         progressDialog.show();
 
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.product,
@@ -181,7 +184,7 @@ public class SlotDetailActivity extends AppCompatActivity {
                             } else if (jsonResponse.has("products")) {
 
                                 JSONArray jsonArray = jsonResponse.getJSONArray("products");
-                                productModels.clear();
+                                salesModels.clear();
 
                                 String run_hex = null;
                                 String status_hex = null;
@@ -189,7 +192,8 @@ public class SlotDetailActivity extends AppCompatActivity {
                                 for (int i = 0; i < jsonArray.length(); i++) {
                                     JSONObject object = jsonArray.getJSONObject(i);
 
-                                    String MOTOR_NO = object.getString("motor_no");
+                                    String MOTOR_ID = object.getString("motor_id");
+                                    String PROD_ID = object.getString("prod_id");
                                     String PROD_NAME = object.getString("prod_name");
                                     String PROD_SPEC = object.getString("prod_spec");
                                     String PROD_DESC = object.getString("prod_desc");
@@ -200,12 +204,13 @@ public class SlotDetailActivity extends AppCompatActivity {
                                     run_hex = RUN_HEX;
                                     status_hex =STATUS_HEX;
 
-                                    productModels.add(new ProductModel(MOTOR_NO, PROD_NAME, PROD_SPEC, PROD_DESC, IMAGE));
+                                    salesModels.add(new SalesModel(MOTOR_ID, PROD_ID, PROD_NAME, PROD_SPEC, PROD_DESC, IMAGE));
                                 }
 
-                                if (!productModels.isEmpty()) {
+                                if (!salesModels.isEmpty()) {
                                     Intent intent = new Intent(SlotDetailActivity.this, ConfirmActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    intent.putExtra("emp_id", String.valueOf(LOGGED_USER));
                                     intent.putExtra("run_hex",run_hex);
                                     intent.putExtra("status_hex",status_hex);
                                     startActivity(intent);
@@ -237,5 +242,23 @@ public class SlotDetailActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener,filter);
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(networkChangeListener);
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(SlotDetailActivity.this, ScannerActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
 }
