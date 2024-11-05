@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:stretchColumns="1,2,3,4,5">
+
+            <TableRow android:background="@color/white">
+
+                <TextView
+                    android:id="@+id/rep_emp_id"
+                    android:layout_gravity="center"
+                    android:width="120dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="172"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/rep_emp_name"
+                    android:layout_gravity="center"
+                    android:width="300dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="GNANA SUNDAR"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/rep_prod_name"
+                    android:layout_gravity="center"
+                    android:width="250dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="Tapping tool"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/rep_qty"
+                    android:layout_gravity="center"
+                    android:width="80dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="1"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/rep_date"
+                    android:layout_gravity="center"
+                    android:width="100dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="10-12-2024"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/rep_time"
+                    android:layout_gravity="center"
+                    android:width="100dp"
+                    android:gravity="start"
+                    android:padding="10dp"
+                    android:text="00:00:00"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    android:textStyle="bold" />
+            </TableRow>
+        </TableLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/black"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
