@@ -98,6 +98,7 @@
                             android:textSize="14dp"
                             android:textStyle="bold" />
                         <TextView
+                            android:visibility="gone"
                             android:width="80dp"
                             android:gravity="start"
                             android:padding="10dp"

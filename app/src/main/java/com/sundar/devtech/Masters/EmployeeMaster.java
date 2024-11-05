@@ -72,10 +72,10 @@ public class EmployeeMaster extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_employee_master);
 
-
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
-        APPBAR_TITLE.setText("Employee Master");
+        APPBAR_TITLE.setText("Employees");
+        APPBAR_BTN.setVisibility(View.GONE);
 
         //back press activity
         BACK_PRESS = findViewById(R.id.backPress);
@@ -87,7 +87,7 @@ public class EmployeeMaster extends AppCompatActivity {
         EMP_RECYCLER.setLayoutManager(EMP_MANAGER);
         EMP = new ArrayList<>();
 
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefer", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("adminUser", MODE_PRIVATE);
         String userId = sharedPreferences.getString("user_id", null);
         if (userId != null) {
             LOGGED_USER = userId;
@@ -202,47 +202,52 @@ public class EmployeeMaster extends AppCompatActivity {
         }
         String finalActive = active;
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.emp_insert,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.equalsIgnoreCase("success")){
-                            Toast.makeText(EmployeeMaster.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
-                            EMP_ID.setText("");
-                            EMP_NAME.setText("");
-                            EMP_MOBILE.setText("");
-                            EMP_ID.requestFocus();
-                            select();
-                        }
-                        else {
-                            Toast.makeText(EmployeeMaster.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
-                        }
+        if (emp_id.equals("")){
+            Toast.makeText(this, "Employee Id is Empty", Toast.LENGTH_SHORT).show();
+        }else if (emp_id.equals("")){
+            Toast.makeText(this, "Employee Name is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.emp_insert,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.equalsIgnoreCase("success")) {
+                                Toast.makeText(EmployeeMaster.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
+                                EMP_ID.setText("");
+                                EMP_NAME.setText("");
+                                EMP_MOBILE.setText("");
+                                EMP_ID.requestFocus();
+                                select();
+                            } else {
+                                Toast.makeText(EmployeeMaster.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
+                            }
 
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(EmployeeMaster.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(EmployeeMaster.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(EmployeeMaster.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(EmployeeMaster.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
+            ) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("emp_id", emp_id);
+                    params.put("emp_name", emp_name);
+                    params.put("mobile", mobile);
+                    params.put("active", finalActive);
+                    params.put("user", LOGGED_USER);
+                    return params;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(EmployeeMaster.this);
+            requestQueue.add(request);
         }
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("emp_id", emp_id);
-                params.put("emp_name", emp_name);
-                params.put("mobile",mobile);
-                params.put("active", finalActive);
-                params.put("user",LOGGED_USER);
-                return params;
-            }
-        };
-        RequestQueue requestQueue = Volley.newRequestQueue(EmployeeMaster.this);
-        requestQueue.add(request);
     }
 
     public void select() {
@@ -259,7 +264,7 @@ public class EmployeeMaster extends AppCompatActivity {
                                 JSONObject object = jsonArray.getJSONObject(i);
 
                                 String EMP_ID = object.getString("emp_id");
-                                String EMP_NAME = object.getString("emp_name");
+                                String EMP_NAME = object.getString("emp_name").toUpperCase();
                                 String MOBILE = object.getString("mobile");
                                 String ACTIVE = object.getString("active");
 

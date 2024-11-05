@@ -59,7 +59,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
     private List<StockModel> stockModels = new ArrayList<>();
     private AlertDialog alertDialog;
     private String PROD_ID;
-    private TextView MOTOR_NO, PROD_NAME;
+    private TextView SLOT_NO, PROD_NAME;
     private TextInputEditText QTY,MIN_QTY;
     private Spinner ACTIVE;
     private ArrayAdapter<String> active_adapter;
@@ -86,7 +86,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull StockAdapter.ViewHolder holder, int position) {
         final StockModel stockModel = stockModels.get(position);
 
-        holder.MOTOR_NO.setText(stockModel.getMotor_no());
+        holder.SLOT_NO.setText(stockModel.getSlot_no());
         holder.PROD_NAME.setText(stockModel.getProd_name());
         holder.QTY.setText(stockModel.getQty());
         holder.MIN_QTY.setText(stockModel.getMin_qty());
@@ -122,7 +122,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                 view.findViewById(R.id.dialog_submit).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Delete(stockModel.getMotor_no(),stockModel.getProd_id());
+                        Delete(stockModel.getSlot_no(),stockModel.getProd_id());
                     }
                 });
 
@@ -146,7 +146,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
 
                 alertDialog = builder.create();
 
-                MOTOR_NO = view.findViewById(R.id.stock_motor_no);
+                SLOT_NO = view.findViewById(R.id.stock_slot_no);
                 PROD_NAME = view.findViewById(R.id.stock_prodName);
                 QTY = view.findViewById(R.id.stock_prod_qty);
                 MIN_QTY = view.findViewById(R.id.stock_min_qty);
@@ -156,14 +156,21 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                 SAVE = view.findViewById(R.id.stock_prod_insert_btn);
                 CANCEL = view.findViewById(R.id.stock_prod_cancel_btn);
 
+                if (!StockActivity.user_role.equals("1")) {
+                    SLOT_NO.setEnabled(false);
+                    PROD_NAME.setEnabled(false);
+                    MIN_QTY.setEnabled(false);
+                }
+
                 active_adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, context.getResources().getStringArray(R.array.active));
                 active_adapter.setDropDownViewResource(R.layout.item_drop_down);
                 ACTIVE.setAdapter(active_adapter);
 
-                ((TextView) view.findViewById(R.id.dialog_title)).setText("Update Product");
+                ((TextView) view.findViewById(R.id.dialog_title)).setText("Update Slot");
                 SAVE.setText("Update");
 
-                MOTOR_NO.setText("Motor No - "+stockModel.getMotor_no());
+                SLOT_NO.setText("Slot No - "+stockModel.getSlot_no());
+                PROD_ID = stockModel.getProd_id();
                 PROD_NAME.setText(stockModel.getProd_name());
                 QTY.setText(stockModel.getQty());
                 MIN_QTY.setText(stockModel.getMin_qty());
@@ -178,8 +185,8 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                 int position = active_adapter.getPosition(statusValue);
                 ACTIVE.setSelection(position);
 
-
-                MOTOR_NO.setOnClickListener(new View.OnClickListener() {
+                SLOT_NO.setEnabled(false);
+                SLOT_NO.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         DIALOG = new Dialog(context);
@@ -196,7 +203,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                         DIALOG.show();
 
                         TextView Tittle = DIALOG.findViewById(R.id.dialog_spinner_title);
-                        Tittle.setText("Select Motor");
+                        Tittle.setText("Select Slot No");
                         EditText editText = DIALOG.findViewById(R.id.spinner_search);
                         ListView listView = DIALOG.findViewById(R.id.spinner_list);
 
@@ -221,9 +228,9 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                String selectedMotor = adapter.getItem(position);
+                                String selectedSlot = adapter.getItem(position);
 
-                                MOTOR_NO.setText(selectedMotor);
+                                SLOT_NO.setText(selectedSlot);
 
                                 DIALOG.dismiss();
                             }
@@ -247,7 +254,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                         DIALOG.show();
 
                         TextView Tittle = DIALOG.findViewById(R.id.dialog_spinner_title);
-                        Tittle.setText("Select Motor");
+                        Tittle.setText("Select Product");
                         EditText editText = DIALOG.findViewById(R.id.spinner_search);
                         ListView listView = DIALOG.findViewById(R.id.spinner_list);
 
@@ -337,7 +344,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                 SAVE.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        update(stockModel.getMotor_no());
+                        update(stockModel.getSlot_no());
                     }
                 });
 
@@ -355,7 +362,6 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
 
             }
         });
-        
     }
 
     @Override
@@ -364,13 +370,13 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView MOTOR_NO,PROD_NAME,QTY, MIN_QTY, ACTIVE;
+        private TextView SLOT_NO,PROD_NAME,QTY, MIN_QTY, ACTIVE;
         private ImageButton EDIT, DELETE;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            MOTOR_NO = itemView.findViewById(R.id.stock_motor_no);
+            SLOT_NO = itemView.findViewById(R.id.stock_slot_no);
             PROD_NAME = itemView.findViewById(R.id.stock_prod_name);
             QTY = itemView.findViewById(R.id.stock_qty);
             MIN_QTY = itemView.findViewById(R.id.stock_min_qty);
@@ -380,7 +386,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
         }
     }
 
-    public void Delete(String motor_no,String prod_id){
+    public void Delete(String slot_no,String prod_id){
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_stock_delete,
                 new Response.Listener<String>() {
                     @Override
@@ -405,7 +411,7 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("motor_no", motor_no);
+                params.put("slot_no", slot_no);
                 params.put("prod_id", prod_id);
                 return params;
             }
@@ -413,46 +419,57 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
         RequestQueue requestQueue = Volley.newRequestQueue(context);
         requestQueue.add(request);
     }
-    public void update(String motor_no) {
+    public void update(String slot_no) {
 
+        String prod_name = PROD_NAME.getText().toString().trim();
         String qty = QTY.getText().toString().trim();
         String min_qty = MIN_QTY.getText().toString().trim();
         String active = ACTIVE.getSelectedItem().toString().trim().equals("ENABLE") ? "1" : "2";
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_stock_update,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.trim().equalsIgnoreCase("Update Successfully!")) {
-                            Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
-                            ((StockActivity) context).select();
-                            alertDialog.dismiss();
-                        } else {
-                            Toast.makeText(context, "Update Failed", Toast.LENGTH_SHORT).show();
+        if (slot_no.equals("")){
+            Toast.makeText(context, "Slot No is Empty", Toast.LENGTH_SHORT).show();
+        }else if (prod_name.equals("")){
+            Toast.makeText(context, "Product Name is Empty", Toast.LENGTH_SHORT).show();
+        }else if (qty.equals("") || qty.equals("0")){
+            Toast.makeText(context, "Qty is Empty", Toast.LENGTH_SHORT).show();
+        }else if (min_qty.equals("")){
+            Toast.makeText(context, "Minimum Qty is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_stock_update,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.trim().equalsIgnoreCase("Update Successfully!")) {
+                                Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
+                                ((StockActivity) context).select();
+                                alertDialog.dismiss();
+                            } else {
+                                Toast.makeText(context, "Update Failed", Toast.LENGTH_SHORT).show();
+                            }
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 }
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("motor_no", motor_no);
-                params.put("prod_id", PROD_ID);
-                params.put("qty", qty);
-                params.put("min_qty",min_qty);
-                params.put("active", active);
-                params.put("user", StockActivity.LOGGED_USER);
-                return params;
-            }
-        };
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("slot_no", slot_no);
+                    params.put("prod_id", PROD_ID);
+                    params.put("qty", qty);
+                    params.put("min_qty", min_qty);
+                    params.put("active", active);
+                    params.put("user", StockActivity.LOGGED_USER);
+                    return params;
+                }
+            };
 
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(request);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
+            requestQueue.add(request);
+        }
     }
 }

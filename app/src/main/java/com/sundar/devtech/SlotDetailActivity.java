@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -31,8 +32,10 @@ import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.Models.ProductModel;
 import com.sundar.devtech.Models.SalesModel;
+import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.MotorService;
+import com.sundar.devtech.Services.QtyAlertMail;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,11 +50,15 @@ public class SlotDetailActivity extends AppCompatActivity {
     private ImageView BACK_PRESS,APPBAR_BTN;
     private TextView APPBAR_TITLE,LOGGED_USER;
     private TextInputEditText SLOT_NUMBERS;
-    private String OLD_SLOT_NUMBER;
+    private String OLD_SLOT_NUMBER,EMP_ID;
     private MaterialButton NUM0,NUM1,NUM2,NUM3,NUM4,NUM5,NUM6,NUM7,NUM8,NUM9;
     private AppCompatButton CLEAR,CANCEL,CONFIRM;
     private MotorService motorService;
     public static ArrayList<SalesModel> salesModels = new ArrayList<>();
+    CustomAlertDialog alertDialog;
+
+    QtyAlertMail qtyAlertMail = new QtyAlertMail(SlotDetailActivity.this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +97,7 @@ public class SlotDetailActivity extends AppCompatActivity {
         String employeeId = sharedPreferences.getString("EMPLOYEE_ID", null);
 
         if (employeeId != null) {
+            EMP_ID = employeeId;
            LOGGED_USER.setText("Logged in Staff id - "+employeeId);
         }
 
@@ -120,7 +128,7 @@ public class SlotDetailActivity extends AppCompatActivity {
                         }
                         OLD_SLOT_NUMBER = SLOT_NUMBERS.getText().toString();
                     } else {
-                        Toast.makeText(SlotDetailActivity.this, "Maximum Allow Two Digits", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(SlotDetailActivity.this, "Maximum Allow Two Digits", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -129,21 +137,14 @@ public class SlotDetailActivity extends AppCompatActivity {
         CLEAR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String num = SLOT_NUMBERS.getText().toString();
-                if (num.length() >1){
-                    SLOT_NUMBERS.setText(num.substring(0, num.length()-1));
-                }else if (num.length() == 1){
-                    SLOT_NUMBERS.setText("");
-                }
+                SLOT_NUMBERS.setText("");
             }
         });
 
         CANCEL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SlotDetailActivity.this, ScannerActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                ActivityMoving.ActivityMoving(SlotDetailActivity.this,ScannerActivity.class);
             }
         });
 
@@ -163,11 +164,11 @@ public class SlotDetailActivity extends AppCompatActivity {
     }
 
     public void productChecking() {
-        String motor_no = SLOT_NUMBERS.getText().toString();
+        String slot_no = SLOT_NUMBERS.getText().toString();
 
         // Show progress dialog
-        CustomAlertDialog dialog = new CustomAlertDialog(this);
-        AlertDialog progressDialog = dialog.pleaseWaitDialog();
+        alertDialog = new CustomAlertDialog(this);
+        AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
         progressDialog.show();
 
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.product,
@@ -180,7 +181,7 @@ public class SlotDetailActivity extends AppCompatActivity {
                             JSONObject jsonResponse = new JSONObject(response);
 
                             if (jsonResponse.has("message")) {
-                                Toast.makeText(SlotDetailActivity.this, jsonResponse.getString("message"), Toast.LENGTH_SHORT).show();
+                                errorDialog(jsonResponse.getString("message"));
                             } else if (jsonResponse.has("products")) {
 
                                 JSONArray jsonArray = jsonResponse.getJSONArray("products");
@@ -210,17 +211,18 @@ public class SlotDetailActivity extends AppCompatActivity {
                                 if (!salesModels.isEmpty()) {
                                     Intent intent = new Intent(SlotDetailActivity.this, ConfirmActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    intent.putExtra("emp_id", String.valueOf(LOGGED_USER));
+                                    intent.putExtra("emp_id", EMP_ID);
                                     intent.putExtra("run_hex",run_hex);
                                     intent.putExtra("status_hex",status_hex);
                                     startActivity(intent);
+                                    qtyAlertMail.sendAlertMail(slot_no);
                                 } else {
-                                    Toast.makeText(SlotDetailActivity.this, "No products available.", Toast.LENGTH_SHORT).show();
+                                    errorDialog("No products available.");
                                 }
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Toast.makeText(SlotDetailActivity.this, "Error parsing JSON: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            serverErrorDialog();
                         }
                     }
                 },
@@ -228,13 +230,13 @@ public class SlotDetailActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressDialog.dismiss();
-                        Toast.makeText(SlotDetailActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        serverErrorDialog();
                     }
                 }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("motor_no", motor_no);
+                params.put("slot_no", slot_no);
                 return params;
             }
         };
@@ -242,11 +244,31 @@ public class SlotDetailActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
     }
+    public void errorDialog(String message){
+        AlertDialog.Builder okDialog = alertDialog.okDialog(message);
+        okDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
+    }
+    public void serverErrorDialog(){
+        AlertDialog.Builder okDialog = alertDialog.okDialog("Server Error. Please Contact Administrator");
+        okDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ActivityMoving.ActivityMoving(SlotDetailActivity.this,ScannerActivity.class);
+            }
+        }).show();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkChangeListener,filter);
+        qtyAlertMail.select();
     }
 
     @Override
@@ -257,8 +279,6 @@ public class SlotDetailActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent intent = new Intent(SlotDetailActivity.this, ScannerActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        ActivityMoving.ActivityMoving(SlotDetailActivity.this,ScannerActivity.class);
     }
 }

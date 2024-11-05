@@ -82,7 +82,7 @@ public class ProductMaster extends AppCompatActivity {
 
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
-        APPBAR_TITLE.setText("Product Master");
+        APPBAR_TITLE.setText("Product List");
 
         //back press activity
         BACK_PRESS = findViewById(R.id.backPress);
@@ -150,6 +150,13 @@ public class ProductMaster extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ProductMaster.this,ProductUpdateActivity.class);
+                intent.putExtra("prod_id", "");
+                intent.putExtra("prod_name", "");
+                intent.putExtra("prod_spec","");
+                intent.putExtra("prod_desc","");
+                intent.putExtra("prod_img", "");
+                intent.putExtra("active", "1");
+                intent.putExtra("update", "0");
                 startActivity(intent);
             }
         });
@@ -169,9 +176,9 @@ public class ProductMaster extends AppCompatActivity {
                                 JSONObject object = jsonArray.getJSONObject(i);
 
                                 String PROD_ID = object.getString("prod_id");
-                                String PROD_NAME = object.getString("prod_name");
-                                String PROD_SPEC = object.getString("prod_spec");
-                                String PROD_DESC = object.getString("prod_desc");
+                                String PROD_NAME = object.getString("prod_name").toUpperCase();
+                                String PROD_SPEC = object.getString("prod_spec").toUpperCase();
+                                String PROD_DESC = object.getString("prod_desc").toUpperCase();
                                 String IMAGE = object.getString("image");
                                 String ACTIVE = object.getString("active");
 

@@ -76,6 +76,7 @@
                     android:textColor="@color/white" />
 
                 <ImageButton
+                    android:visibility="gone"
                     android:id="@+id/motor_delete"
                     android:layout_width="80dp"
                     android:layout_height="50dp"

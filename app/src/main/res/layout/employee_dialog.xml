@@ -87,6 +87,7 @@
                         android:inputType="number"
                         android:maxLength="10"
                         android:textSize="12sp"
+                        android:enabled="false"
                         app:hintAnimationEnabled="true"
                         android:background="@drawable/outline_box"/>
                 </com.google.android.material.textfield.TextInputLayout>
@@ -125,6 +126,7 @@
                         android:maxLength="50"
                         android:textSize="12sp"
                         android:maxLines="1"
+                        android:enabled="false"
                         android:imeOptions="actionNext"
                         app:hintAnimationEnabled="true"
                         android:background="@drawable/outline_box"/>
@@ -165,6 +167,7 @@
                         android:maxLength="10"
                         android:textSize="12sp"
                         android:maxLines="1"
+                        android:enabled="false"
                         android:imeOptions="actionNext"
                         app:hintAnimationEnabled="true"
                         android:background="@drawable/outline_box"/>

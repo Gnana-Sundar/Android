@@ -73,7 +73,7 @@ public class MotorMaster extends AppCompatActivity {
         MOTOR_RECYCLER.setLayoutManager(MOTOR_MANAGER);
         MOTOR = new ArrayList<>();
 
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefer", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("adminUser", MODE_PRIVATE);
         String userId = sharedPreferences.getString("user_id", null);
         if (userId != null) {
             LOGGED_USER = userId;
@@ -84,6 +84,7 @@ public class MotorMaster extends AppCompatActivity {
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
         APPBAR_TITLE.setText("Motor Master");
+        APPBAR_BTN.setVisibility(View.GONE);
 
         //back press activity
         BACK_PRESS = findViewById(R.id.backPress);
@@ -208,47 +209,51 @@ public class MotorMaster extends AppCompatActivity {
         }
         String finalActive = active;
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.motor_insert,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.equalsIgnoreCase("success")){
-                            Toast.makeText(MotorMaster.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
-                            MOTOR_NO.setText("");
-                            MOTOR_RUN_HEX.setText("");
-                            MOTOR_STATUS_HEX.setText("");
-                            MOTOR_NO.requestFocus();
-                            select();
-                        }
-                        else {
-                            Toast.makeText(MotorMaster.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
-                        }
+        if (run_hex.equals("")){
+            Toast.makeText(MotorMaster.this, "Run Hex is Empty", Toast.LENGTH_SHORT).show();
+        }else if (status_hex.equals("")){
+            Toast.makeText(MotorMaster.this, "Status Hex is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.motor_insert,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.equalsIgnoreCase("success")) {
+                                Toast.makeText(MotorMaster.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
+                                MOTOR_NO.setText("");
+                                MOTOR_RUN_HEX.setText("");
+                                MOTOR_STATUS_HEX.setText("");
+                                MOTOR_NO.requestFocus();
+                                select();
+                            } else {
+                                Toast.makeText(MotorMaster.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
+                            }
 
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(MotorMaster.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MotorMaster.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(MotorMaster.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MotorMaster.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            }
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("motor_no", motor_no);
+                    params.put("run_hex", run_hex);
+                    params.put("status_hex", status_hex);
+                    params.put("active", finalActive);
+                    params.put("user", LOGGED_USER);
+                    return params;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(MotorMaster.this);
+            requestQueue.add(request);
         }
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("motor_no", motor_no);
-                params.put("run_hex", run_hex);
-                params.put("status_hex",status_hex);
-                params.put("active", finalActive);
-                params.put("user",LOGGED_USER);
-                return params;
-            }
-        };
-        RequestQueue requestQueue = Volley.newRequestQueue(MotorMaster.this);
-        requestQueue.add(request);
     }
 
     public void select() {

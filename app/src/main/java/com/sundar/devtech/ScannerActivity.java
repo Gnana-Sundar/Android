@@ -30,11 +30,18 @@ import com.journeyapps.barcodescanner.ScanOptions;
 import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.MotorMaster;
+import com.sundar.devtech.Models.StockModel;
 import com.sundar.devtech.Scanner.CaptureAct;
+import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.CustomAlertDialog;
+import com.sundar.devtech.Services.QtyAlertMail;
+import com.sundar.devtech.Services.SendMail;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.mail.MessagingException;
 
 public class ScannerActivity extends AppCompatActivity {
     NetworkChangeListener networkChangeListener = new NetworkChangeListener();
@@ -45,6 +52,16 @@ public class ScannerActivity extends AppCompatActivity {
     private boolean isDialogShowing = false;
     private boolean isExitConfirmed = false;
     public static String PREFS_NAME="myProfile";
+
+    private Handler handler = new Handler();
+//    private Runnable alertMailRunnable = new Runnable() {
+//        @Override
+//        public void run() {
+//            QtyAlertMail.sendAlertMail(ScannerActivity.this);
+//            handler.postDelayed(this, 10800000); // 3 hours in milliseconds
+//        }
+//    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +111,7 @@ public class ScannerActivity extends AppCompatActivity {
                 Toast.makeText(ScannerActivity.this, "Cancelled", Toast.LENGTH_LONG).show();
             } else {
                 employeeId = result.getContents();
+
                 userLogin();
             }
         });
@@ -108,19 +126,16 @@ public class ScannerActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        progressDialog.dismiss();
                         if (response.trim().equalsIgnoreCase("Login successfully")){
 
                             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString("EMPLOYEE_ID", employeeId);
                             editor.apply();
-                            progressDialog.dismiss();
-
-                            Intent intent = new Intent(ScannerActivity.this, SlotDetailActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
 
                             Toast.makeText(ScannerActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
+                            ActivityMoving.ActivityMoving(ScannerActivity.this,SlotDetailActivity.class);
                         }
                         else {
                             progressDialog.dismiss();
@@ -186,12 +201,18 @@ public class ScannerActivity extends AppCompatActivity {
         super.onStart();
         IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkChangeListener,filter);
+
+//        // Start alert mail task
+//        handler.post(alertMailRunnable);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(networkChangeListener);
+
+//        // Stop alert mail task
+//        handler.removeCallbacks(alertMailRunnable);
     }
 
 }

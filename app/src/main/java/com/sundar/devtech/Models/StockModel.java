@@ -1,10 +1,10 @@
 package com.sundar.devtech.Models;
 
 public class StockModel {
-    private String motor_no,prod_id,prod_name,qty,min_qty,active;
+    private String slot_no,prod_id,prod_name,qty,min_qty,active;
 
-    public StockModel(String motor_no, String prod_id, String prod_name, String qty, String min_qty, String active) {
-        this.motor_no = motor_no;
+    public StockModel(String slot_no, String prod_id, String prod_name, String qty, String min_qty, String active) {
+        this.slot_no = slot_no;
         this.prod_id = prod_id;
         this.prod_name = prod_name;
         this.qty = qty;
@@ -12,8 +12,8 @@ public class StockModel {
         this.active = active;
     }
 
-    public String getMotor_no() {
-        return motor_no;
+    public String getSlot_no() {
+        return slot_no;
     }
 
     public String getProd_id() {

@@ -135,7 +135,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.ViewHo
                 SAVE = view.findViewById(R.id.emp_insert_btn);
                 CANCEL = view.findViewById(R.id.emp_cancel_btn);
 
-                ((TextView) view.findViewById(R.id.dialog_title)).setText("Update Motor");
+                ((TextView) view.findViewById(R.id.dialog_title)).setText("Update Employee");
                 SAVE.setText("Update");
 
                 EMP_ID.setEnabled(false);
@@ -246,39 +246,45 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.ViewHo
         }
         String finalActive = active;
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.emp_update,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.trim().equalsIgnoreCase("Update Successfully!")){
-                            Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
-                            ((EmployeeMaster) context).select();
-                            alertDialog.dismiss();
-                        } else {
-                            Toast.makeText(context, "Updated Failed", Toast.LENGTH_SHORT).show();
+        if (emp_id.equals("")){
+            Toast.makeText(context, "Employee Id is Empty", Toast.LENGTH_SHORT).show();
+        }else if (emp_id.equals("")){
+            Toast.makeText(context, "Employee Name is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.emp_update,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.trim().equalsIgnoreCase("Update Successfully!")) {
+                                Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
+                                ((EmployeeMaster) context).select();
+                                alertDialog.dismiss();
+                            } else {
+                                Toast.makeText(context, "Updated Failed", Toast.LENGTH_SHORT).show();
+                            }
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 }
             }
+            ) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("emp_id", emp_id);
+                    params.put("emp_name", emp_name);
+                    params.put("mobile", mobile);
+                    params.put("active", finalActive);
+                    params.put("user", EmployeeMaster.LOGGED_USER);
+                    return params;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
+            requestQueue.add(request);
         }
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("emp_id", emp_id);
-                params.put("emp_name", emp_name);
-                params.put("mobile",mobile);
-                params.put("active", finalActive);
-                params.put("user",EmployeeMaster.LOGGED_USER);
-                return params;
-            }
-        };
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(request);
     }
 }

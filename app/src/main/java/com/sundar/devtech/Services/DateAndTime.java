@@ -2,9 +2,17 @@ package com.sundar.devtech.Services;
 
 import android.os.Handler;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 public class DateAndTime {
+
+    public static SimpleDateFormat getDate(Calendar CALENDAR) {
+        String DateFormat = "dd-MM-yyyy";
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DateFormat, Locale.US);
+        return dateFormat;
+    }
 
     // Correct date format for months
     public static String getDate() {

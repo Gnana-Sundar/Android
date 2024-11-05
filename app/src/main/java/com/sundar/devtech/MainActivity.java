@@ -10,12 +10,14 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -24,7 +26,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.navigation.NavigationView;
+import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.EmployeeMaster;
 import com.sundar.devtech.Masters.MotorMaster;
@@ -32,31 +41,40 @@ import com.sundar.devtech.Masters.ProductMaster;
 import com.sundar.devtech.Masters.ReportActivity;
 import com.sundar.devtech.Masters.StockActivity;
 import com.sundar.devtech.Services.DateAndTime;
-import com.sundar.devtech.Services.SendMail;
 
-import javax.mail.MessagingException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     NetworkChangeListener networkChangeListener = new NetworkChangeListener();
     private NavigationView navigationView;
     private DrawerLayout drawer;
     private ImageButton burgerIcon;
-    private TextView DATE,TIME;
-    private String currentTime;
+    private TextView DATE, TIME;
+    private String currentTime, user_role;
     private Handler handler = new Handler();
     private Runnable runnable;
     private boolean isDialogShowing = false;
     private boolean isExitConfirmed = false;
+    private MenuItem naveEmployeeMaster, navMotorMaster, navProdMaster;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        sendEmailInBackground("rbj0005@gmail.com", "Hello", "How Are you regin");
-
         navigationView = findViewById(R.id.side_navigation);
         navigationView.setNavigationItemSelectedListener(MainActivity.this);
+        Menu menu = navigationView.getMenu();
+        naveEmployeeMaster = menu.findItem(R.id.nav_emp_master);
+        navMotorMaster = menu.findItem(R.id.nav_motor_master);
+        navProdMaster = menu.findItem(R.id.nav_prod_master);
+
         //header image view start
         View nav_head = navigationView.getHeaderView(0);
         burgerIcon = findViewById(R.id.burgerIcon);
@@ -75,28 +93,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        SharedPreferences sharedPreferences = getSharedPreferences("adminUser", MODE_PRIVATE);
+        user_role = sharedPreferences.getString("user_role", null);
+
+        if (!user_role.equals("1")) {
+            Toast.makeText(this, user_role, Toast.LENGTH_SHORT).show();
+            naveEmployeeMaster.setVisible(false);
+            navMotorMaster.setVisible(false);
+            navProdMaster.setVisible(false);
+        } else {
+            navMotorMaster.setVisible(false);
+        }
 
     }
-    private void sendEmailInBackground(String recipientEmail, String subject, String bodyText) {
-        new Thread(() -> {
-            SendMail mailSender = new SendMail();
-            try {
-                mailSender.sendEmailWithAttachment(recipientEmail, subject, bodyText);
-                runOnUiThread(() -> showToast("Email sent successfully!"));
-            } catch (MessagingException e) {
-                e.printStackTrace();
-                runOnUiThread(() -> showToast("Failed to send email: " + e.getMessage()));
-            }
-        }).start();
-    }
-
-    private void showToast(String message) {
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-    }
-
 
     private void startLiveTime() {
-       runnable = new Runnable() {
+        runnable = new Runnable() {
             @Override
             public void run() {
                 currentTime = DateAndTime.getTimeAndMarker();
@@ -111,8 +123,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkChangeListener,filter);
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeListener, filter);
     }
 
     @Override
@@ -128,18 +140,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.nav_prod_master) {
             startActivity(new Intent(MainActivity.this, ProductMaster.class));
-        }else if (id == R.id.nav_emp_master){
+        } else if (id == R.id.nav_emp_master) {
             startActivity(new Intent(MainActivity.this, EmployeeMaster.class));
-        }else if (id == R.id.nav_motor_master){
+        } else if (id == R.id.nav_motor_master) {
             startActivity(new Intent(MainActivity.this, MotorMaster.class));
-        }else if (id == R.id.nav_reports) {
+        } else if (id == R.id.nav_reports) {
             startActivity(new Intent(MainActivity.this, ReportActivity.class));
-        }else if (id == R.id.nav_prod_stock) {
+        } else if (id == R.id.nav_prod_stock) {
             startActivity(new Intent(MainActivity.this, StockActivity.class));
-        }else if (id == R.id.nav_logout) {
+        } else if (id == R.id.nav_logout) {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this, R.style.AlertDialogTheme);
             View view1 = LayoutInflater.from(MainActivity.this).inflate(R.layout.warning_dialog,
-                    (ConstraintLayout)findViewById(R.id.warning_dialog));
+                    (ConstraintLayout) findViewById(R.id.warning_dialog));
 
             builder.setView(view1);
             ((TextView) view1.findViewById(R.id.dialog_title)).setText("Logout");
@@ -167,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     alertDialog.dismiss();
                 }
             });
-            if (alertDialog.getWindow() !=null){
+            if (alertDialog.getWindow() != null) {
                 alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             }
             alertDialog.show();
@@ -209,4 +221,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
+
+
+
 }

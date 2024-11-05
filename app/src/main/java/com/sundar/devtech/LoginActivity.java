@@ -1,10 +1,12 @@
 package com.sundar.devtech;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.text.InputType;
@@ -13,9 +15,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
-import com.sundar.devtech.DatabaseController.UserController;
+import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
+import com.sundar.devtech.Services.ActivityMoving;
+import com.sundar.devtech.Services.CustomAlertDialog;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     NetworkChangeListener networkChangeListener = new NetworkChangeListener();
@@ -25,14 +39,11 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView PASS_ICON;
     private boolean passwordShowing = false;
     private AppCompatButton LOGIN_BTN;
-    private UserController userController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        userController = new UserController(LoginActivity.this);
 
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
@@ -75,21 +86,72 @@ public class LoginActivity extends AppCompatActivity {
         LOGIN_BTN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String UserName = USER_NAME.getText().toString();
-                String UserPass = USER_PASS.getText().toString();
-
-                String response = userController.loginUsers(UserName,UserPass);
-                if (response.equals("Login Successfully")){
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    Toast.makeText(LoginActivity.this, "Login Successfully", Toast.LENGTH_SHORT).show();
-                }else {
-                    Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_SHORT).show();
-                }
+                adminLogin();
             }
         });
     }
+
+    public void adminLogin(){
+        String UserName = USER_NAME.getText().toString().trim();
+        String UserPass = USER_PASS.getText().toString().trim();
+
+        // Show progress dialog
+        CustomAlertDialog dialog = new CustomAlertDialog(this);
+        AlertDialog progressDialog = dialog.pleaseWaitDialog();
+        progressDialog.show();
+
+        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.admin_login,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.trim().equalsIgnoreCase("Invalid User")){
+                            progressDialog.dismiss();
+                            Toast.makeText(LoginActivity.this, response, Toast.LENGTH_SHORT).show();
+                        }else {
+                            SharedPreferences sharedPreferences = getSharedPreferences("adminUser", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("user_id", UserName);
+                            editor.putString("user_role", response.trim());
+                            editor.apply();
+
+                            progressDialog.dismiss();
+                            Toast.makeText(LoginActivity.this, "Login successfully", Toast.LENGTH_SHORT).show();
+                            ActivityMoving.ActivityMoving(LoginActivity.this, MainActivity.class);
+
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                progressDialog.dismiss();
+                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                    Toast.makeText(LoginActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        ){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("user_name", UserName);
+                params.put("user_pass", UserPass);
+                return params;
+            }
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/x-www-form-urlencoded");
+                return headers;
+            }
+        };
+        RequestQueue requestQueue = Volley.newRequestQueue(LoginActivity.this);
+        requestQueue.add(request);
+
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -105,8 +167,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent intent = new Intent(LoginActivity.this, ScannerActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        ActivityMoving.ActivityMoving(LoginActivity.this, ScannerActivity.class);
     }
 }

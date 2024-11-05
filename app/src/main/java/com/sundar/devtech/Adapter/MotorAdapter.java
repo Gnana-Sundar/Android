@@ -250,41 +250,47 @@ public class MotorAdapter extends RecyclerView.Adapter<MotorAdapter.ViewHolder>{
         }
         String finalActive = active;
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.motor_update,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
-                        if (response.trim().equalsIgnoreCase("Update Successfully!")){
-                            Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
-                            ((MotorMaster) context).select();
-                            alertDialog.dismiss();
-                        } else {
-                            Toast.makeText(context, "Updated Failed", Toast.LENGTH_SHORT).show();
+        if (run_hex.equals("")){
+            Toast.makeText(context, "Run Hex is Empty", Toast.LENGTH_SHORT).show();
+        }else if (status_hex.equals("")){
+            Toast.makeText(context, "Status Hex is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.motor_update,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
+                            if (response.trim().equalsIgnoreCase("Update Successfully!")) {
+                                Toast.makeText(context, "Updated Successfully", Toast.LENGTH_SHORT).show();
+                                ((MotorMaster) context).select();
+                                alertDialog.dismiss();
+                            } else {
+                                Toast.makeText(context, "Updated Failed", Toast.LENGTH_SHORT).show();
+                            }
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(context, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 }
             }
+            ) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("motor_id", motor_id);
+                    params.put("motor_no", motor_no);
+                    params.put("run_hex", run_hex);
+                    params.put("status_hex", status_hex);
+                    params.put("active", finalActive);
+                    params.put("user", MotorMaster.LOGGED_USER);
+                    return params;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
+            requestQueue.add(request);
         }
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("motor_id", motor_id);
-                params.put("motor_no", motor_no);
-                params.put("run_hex", run_hex);
-                params.put("status_hex",status_hex);
-                params.put("active",finalActive);
-                params.put("user",MotorMaster.LOGGED_USER);
-                return params;
-            }
-        };
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(request);
     }
 }

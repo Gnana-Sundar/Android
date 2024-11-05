@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,4 +9,186 @@
 
     <include layout="@layout/appbar"
         android:id="@+id/appbar"/>
-</LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="55dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="5dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/rep_from_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/outline_box"
+                android:drawableEnd="@drawable/ic_calendar"
+                android:hint="Select From Date"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:visibility="visible"
+                android:layout_marginHorizontal="2dp"/>
+            <TextView
+                android:id="@+id/rep_to_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/outline_box"
+                android:drawableEnd="@drawable/ic_calendar"
+                android:hint="Select To Date"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:visibility="visible"
+                android:layout_marginHorizontal="2dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="5dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/process"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/green_500"
+                android:text="Process"
+                android:textColor="@color/white"/>
+        </LinearLayout>
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:orientation="vertical">
+
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="8dp"
+                    android:stretchColumns="1,2,3,4,5"
+                    tools:context=".FuelSavePage">
+
+                    <TableRow android:background="@color/appbar">
+                        <TextView
+                            android:width="120dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Employee Id"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:width="300dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Employee Name"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:width="250dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Product Name"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:width="80dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Qty"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:width="100dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Date"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:width="100dp"
+                            android:gravity="start"
+                            android:padding="10dp"
+                            android:text="Time"
+                            android:textColor="@color/white"
+                            android:textSize="14dp"
+                            android:textStyle="bold" />
+                    </TableRow>
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/report_recycler"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            tools:listitem="@layout/item_report"
+                            android:layout_marginBottom="80dp">
+
+                        </androidx.recyclerview.widget.RecyclerView>
+                    </ScrollView>
+                </TableLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/create_excel"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_bg"
+                android:backgroundTint="@color/background_color"
+                android:text="Create Excel"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/sendmail"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/button_bg"
+                android:backgroundTint="@color/green_200"
+                android:text="Send Mail"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

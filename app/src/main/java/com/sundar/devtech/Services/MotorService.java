@@ -60,10 +60,10 @@ public class MotorService implements MotorController {
             public void run() {
                 String statusResponse = StatusCommand(statusCommand);
                 if (callback != null) {
-                    callback.onStatusCommandResult("Status Command Response: " + statusResponse);
+                    callback.onStatusCommandResult(statusResponse);
                 }
             }
-        }, 5000);
+        }, 4000);
     }
 
 

@@ -58,6 +58,7 @@ public class ProductUpdateActivity extends AppCompatActivity {
     private static final int CROP_IMAGE_REQ_CODE = 2;
     private Bitmap bitmap;
     public static String LOGGED_USER = null;
+    private boolean isFetched = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +67,7 @@ public class ProductUpdateActivity extends AppCompatActivity {
         // Initialize your views
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
-        APPBAR_TITLE.setText("Add New Product"); // Change title to 'Update Product'
+        APPBAR_TITLE.setText("Add New Product");
 
         // Back press functionality
         BACK_PRESS = findViewById(R.id.backPress);
@@ -74,7 +75,7 @@ public class ProductUpdateActivity extends AppCompatActivity {
         APPBAR_BTN.setVisibility(View.GONE);
 
         // Load logged user information
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefer", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("adminUser", MODE_PRIVATE);
         String userId = sharedPreferences.getString("user_id", null);
         LOGGED_USER = (userId != null) ? userId : "admin";
 
@@ -125,6 +126,7 @@ public class ProductUpdateActivity extends AppCompatActivity {
     }
 
     public void fetchUpdateValue(){
+
         Intent intent = getIntent();
         if (intent != null) {
             PROD_ID  = intent.getStringExtra("prod_id");
@@ -134,8 +136,11 @@ public class ProductUpdateActivity extends AppCompatActivity {
             String prodImg = intent.getStringExtra("prod_img");
             String activeStatus = intent.getStringExtra("active");
             UPDATE = intent.getStringExtra("update");
-            APPBAR_TITLE.setText("Update Product");
-            SAVE.setText("UPDATE");
+
+            if (UPDATE.equals("1")) {
+                APPBAR_TITLE.setText("Update Product");
+                SAVE.setText("UPDATE");
+            }
 
             // Set the retrieved data to your views
             PRODUCT_NAME.setText(prodName);
@@ -152,6 +157,9 @@ public class ProductUpdateActivity extends AppCompatActivity {
             } else {
                 ACTIVE.setSelection(1);
             }
+        }else {
+            APPBAR_TITLE.setText("Add New Product");
+            SAVE.setText("INSERT");
         }
     }
 
@@ -160,94 +168,109 @@ public class ProductUpdateActivity extends AppCompatActivity {
         String prod_spec = SPECIFICATION.getText().toString().trim();
         String prod_desc = DESCRIPTION.getText().toString().trim();
         String active = ACTIVE.getSelectedItem().toString().trim().equals("ENABLE") ? "1" : "2";
+        final String imageStr = imageString(bitmap);
 
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_insert,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.equalsIgnoreCase("success")){
-                            Toast.makeText(ProductUpdateActivity.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
-                            PRODUCT_NAME.setText("");
-                            SPECIFICATION.setText("");
-                            DESCRIPTION.setText("");
-                            PROD_IMAGE.setImageDrawable(getResources().getDrawable(R.drawable.upload_icon));
-                            PRODUCT_NAME.requestFocus();
+        if (prod_name.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Product Name is Empty", Toast.LENGTH_SHORT).show();
+        } else if (prod_spec.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Specification is Empty", Toast.LENGTH_SHORT).show();
+        } else if (prod_desc.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Description is Empty", Toast.LENGTH_SHORT).show();
+        } else if (imageStr.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Product Image is Empty", Toast.LENGTH_SHORT).show();
+        } else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_insert,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.equalsIgnoreCase("success")) {
+                                Toast.makeText(ProductUpdateActivity.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(ProductUpdateActivity.this, ProductMaster.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(ProductUpdateActivity.this, response, Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        else {
-                            Toast.makeText(ProductUpdateActivity.this, response, Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(ProductUpdateActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(ProductUpdateActivity.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(ProductUpdateActivity.this, "Network error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
-            }
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("prod_name", prod_name);
+                    params.put("prod_spec", prod_spec);
+                    params.put("prod_desc", prod_desc);
+                    params.put("prod_image", imageStr);
+                    params.put("active", active);
+                    params.put("user", LOGGED_USER);
+                    return params;
+                }
+            };
+            RequestQueue requestQueue = Volley.newRequestQueue(ProductUpdateActivity.this);
+            requestQueue.add(request);
         }
-        ){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("prod_name", prod_name);
-                params.put("prod_spec", prod_spec);
-                params.put("prod_desc", prod_desc);
-                params.put("prod_image",imageString(bitmap));
-                params.put("active", active);
-                params.put("user",LOGGED_USER);
-                return params;
-            }
-        };
-        RequestQueue requestQueue = Volley.newRequestQueue(ProductUpdateActivity.this);
-        requestQueue.add(request);
     }
+
     public void update() {
         String prod_name = PRODUCT_NAME.getText().toString().trim();
         String prod_spec = SPECIFICATION.getText().toString().trim();
         String prod_desc = DESCRIPTION.getText().toString().trim();
         String active = ACTIVE.getSelectedItem().toString().trim().equals("ENABLE") ? "1" : "2";
-        StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_update,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response.trim().equalsIgnoreCase("Update Successfully!")) {
+        final String[] imageStr = {imageString(bitmap)};
 
-                            Intent intent = new Intent(ProductUpdateActivity.this, ProductMaster.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
+        if (prod_name.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Product Name is Empty", Toast.LENGTH_SHORT).show();
+        }else if (prod_spec.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Specification is Empty", Toast.LENGTH_SHORT).show();
+        }else if (prod_desc.equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Description is Empty", Toast.LENGTH_SHORT).show();
+        }if (imageStr[0].equals("")){
+            Toast.makeText(ProductUpdateActivity.this, "Product Image is Empty", Toast.LENGTH_SHORT).show();
+        }else {
+            StringRequest request = new StringRequest(Request.Method.POST, RequestURL.prod_update,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response.trim().equalsIgnoreCase("Update Successfully!")) {
 
-                            Toast.makeText(ProductUpdateActivity.this, "Updated Successfully", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(ProductUpdateActivity.this, "Update Failed", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(ProductUpdateActivity.this, ProductMaster.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+
+                                Toast.makeText(ProductUpdateActivity.this, "Updated Successfully", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ProductUpdateActivity.this, "Update Failed", Toast.LENGTH_SHORT).show();
+                            }
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                        Toast.makeText(ProductUpdateActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
-                    Toast.makeText(ProductUpdateActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 }
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("prod_id", PROD_ID);
-                params.put("prod_name", prod_name);
-                params.put("prod_spec", prod_spec);
-                params.put("prod_desc", prod_desc);
-                params.put("prod_image", imageString(bitmap));
-                params.put("active", active);
-                params.put("user", LOGGED_USER);
-                return params;
-            }
-        };
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("prod_id", PROD_ID);
+                    params.put("prod_name", prod_name);
+                    params.put("prod_spec", prod_spec);
+                    params.put("prod_desc", prod_desc);
+                    params.put("prod_image",  imageStr[0]);
+                    params.put("active", active);
+                    params.put("user", LOGGED_USER);
+                    return params;
+                }
+            };
 
-        RequestQueue requestQueue = Volley.newRequestQueue(ProductUpdateActivity.this);
-        requestQueue.add(request);
+            RequestQueue requestQueue = Volley.newRequestQueue(ProductUpdateActivity.this);
+            requestQueue.add(request);
+        }
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -278,6 +301,9 @@ public class ProductUpdateActivity extends AppCompatActivity {
     }
 
     public String imageString(Bitmap bitmap) {
+        if (bitmap == null) {
+            return "";
+        }
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
 
@@ -294,6 +320,9 @@ public class ProductUpdateActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        fetchUpdateValue();
+        if (!isFetched) {
+            fetchUpdateValue();
+            isFetched = true;
+        }
     }
 }

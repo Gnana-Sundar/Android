@@ -1,5 +1,7 @@
 package com.sundar.devtech;
 
+import static com.sundar.devtech.Services.ActivityMoving.ActivityMoving;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -32,6 +34,7 @@ import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Models.ProductModel;
 import com.sundar.devtech.Models.SalesModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.ByteConvertor;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.MotorService;
@@ -83,13 +86,22 @@ public class ConfirmActivity extends AppCompatActivity {
         BUY.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 AlertDialog.Builder builder = customAlertDialog.confirmDialog();
 
                 builder.setPositiveButton("CONFIRM", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        runCommand();
+                        CustomAlertDialog alertDialog = new CustomAlertDialog(ConfirmActivity.this);
+                        AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
+                        progressDialog.show();
+
+                        AlertDialog.Builder okDialog = alertDialog.okDialog("Run Hex :" +run_hex +"\nstatus hex :"+ status_hex);
+                        okDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                runCommand();
+                            }
+                        }).show();
                     }
                 });
 
@@ -113,9 +125,7 @@ public class ConfirmActivity extends AppCompatActivity {
                 builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(ConfirmActivity.this, ScannerActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
+                        ActivityMoving.ActivityMoving(ConfirmActivity.this,ScannerActivity.class);
                     }
                 });
 
@@ -137,11 +147,12 @@ public class ConfirmActivity extends AppCompatActivity {
         ArrayList<SalesModel> salesModels = SlotDetailActivity.salesModels;
 
         for (SalesModel salesModel:salesModels){
+            motor_id = salesModel.getMotor_id();
             Bitmap bitmap = decodeBase64(salesModel.getProd_image());
             PROD_IMAGE.setImageBitmap(bitmap);
-            PROD_NAME.setText(salesModel.getProd_name());
-            PROD_DESC.setText(salesModel.getProd_desc());
-            PROD_SPEC.setText(salesModel.getProd_spec());
+            PROD_NAME.setText(salesModel.getProd_name().toUpperCase());
+            PROD_DESC.setText(salesModel.getProd_desc().toUpperCase());
+            PROD_SPEC.setText(salesModel.getProd_spec().toUpperCase());
             prod_id = salesModel.getProd_id();
         }
 
@@ -158,7 +169,6 @@ public class ConfirmActivity extends AppCompatActivity {
     }
 
     public void runCommand() {
-
         CustomAlertDialog alertDialog = new CustomAlertDialog(ConfirmActivity.this);
         AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
         progressDialog.show();
@@ -167,37 +177,45 @@ public class ConfirmActivity extends AppCompatActivity {
             @Override
             public void onStatusCommandResult(String response) {
 
-                byte[] responseBytes = ByteConvertor.hexStringToByteArray(response);
+                String[] arr = response.split(" ");
 
-                if (responseBytes != null && responseBytes.length >= 5) {
-                    if (responseBytes[2] == 0x02 && responseBytes[4] == 0x00) {
-                        progressDialog.dismiss();
-                        insert();
+                if (arr != null && arr.length >= 5) {
+                    if (arr[2].equals("02") && arr[4].equals("00")) {
+                        insert(progressDialog);
                     } else {
-                        progressDialog.dismiss();
-                        Toast.makeText(ConfirmActivity.this, "Server Error. Please Contact Administrator", Toast.LENGTH_SHORT).show();
+                        showErrorDialog(progressDialog, alertDialog);
                     }
                 } else {
-                    progressDialog.dismiss();
-                    Toast.makeText(ConfirmActivity.this, "Server Error. Please Contact Administrator", Toast.LENGTH_SHORT).show();
+                    showErrorDialog(progressDialog, alertDialog);
                 }
             }
         });
     }
 
-    public void insert() {
+    private void showErrorDialog(AlertDialog progressDialog, CustomAlertDialog alertDialog) {
+        progressDialog.dismiss();
+        AlertDialog.Builder okDialog = alertDialog.okDialog("Server Error. Please Contact Administrator");
+        okDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ActivityMoving.ActivityMoving(ConfirmActivity.this, ScannerActivity.class);
+            }
+        }).show();
+    }
+
+
+    public void insert(AlertDialog alertDialog) {
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.sales_insert,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         if (response.equalsIgnoreCase("success")){
-                            Intent intent = new Intent(ConfirmActivity.this, SuccessActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-
-                            Toast.makeText(ConfirmActivity.this, "Operation finished with ID 0, no fault detected.", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
+                            ActivityMoving.ActivityMoving(ConfirmActivity.this,SuccessActivity.class);
+                            Toast.makeText(ConfirmActivity.this, "Buying Success", Toast.LENGTH_SHORT).show();
                         }
                         else {
+                            alertDialog.dismiss();
                             Toast.makeText(ConfirmActivity.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
                         }
 
@@ -206,8 +224,10 @@ public class ConfirmActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 if (error.networkResponse != null && error.networkResponse.statusCode == 500) {
+                    alertDialog.dismiss();
                     Toast.makeText(ConfirmActivity.this, "Server error. Please try again later.", Toast.LENGTH_SHORT).show();
                 } else {
+                    alertDialog.dismiss();
                     Toast.makeText(ConfirmActivity.this, "ENetwork error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -227,6 +247,8 @@ public class ConfirmActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -244,8 +266,6 @@ public class ConfirmActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent intent = new Intent(ConfirmActivity.this, ScannerActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        ActivityMoving.ActivityMoving(ConfirmActivity.this,ScannerActivity.class);
     }
 }

@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 
+import com.sundar.devtech.Services.ActivityMoving;
+
 public class SuccessActivity extends AppCompatActivity {
 
     private AppCompatButton EXIT,CONTINUE;
@@ -25,26 +27,20 @@ public class SuccessActivity extends AppCompatActivity {
         EXIT.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SuccessActivity.this, ScannerActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                ActivityMoving.ActivityMoving(SuccessActivity.this,ScannerActivity.class);
             }
         });
 
         CONTINUE.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SuccessActivity.this, SlotDetailActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                ActivityMoving.ActivityMoving(SuccessActivity.this,SlotDetailActivity.class);
             }
         });
     }
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent intent = new Intent(SuccessActivity.this, ScannerActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        ActivityMoving.ActivityMoving(SuccessActivity.this,ScannerActivity.class);
     }
 }

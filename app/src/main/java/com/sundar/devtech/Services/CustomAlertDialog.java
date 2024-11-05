@@ -52,5 +52,31 @@ public class CustomAlertDialog{
         return progressDialog;
     }
 
+    public AlertDialog.Builder okDialog(String message){
+        TextView titleView = new TextView(context);
+        titleView.setText("Alert");
+        titleView.setTextSize(20);
+        titleView.setTextColor(context.getResources().getColor(R.color.black));
+        titleView.setPadding(50, 40, 20, 20);
+
+        AlertDialog.Builder progressDialog = new AlertDialog.Builder(context);
+        progressDialog.setCustomTitle(titleView);
+        progressDialog.setMessage(message);
+
+        return progressDialog;
+    }
+    public AlertDialog.Builder serverErrorDialog(){
+        TextView titleView = new TextView(context);
+        titleView.setText("Alert");
+        titleView.setTextSize(20);
+        titleView.setTextColor(context.getResources().getColor(R.color.black));
+        titleView.setPadding(50, 40, 20, 20);
+
+        AlertDialog.Builder progressDialog = new AlertDialog.Builder(context);
+        progressDialog.setCustomTitle(titleView);
+        progressDialog.setMessage("");
+
+        return progressDialog;
+    }
 
 }
