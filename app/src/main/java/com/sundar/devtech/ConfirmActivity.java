@@ -91,17 +91,7 @@ public class ConfirmActivity extends AppCompatActivity {
                 builder.setPositiveButton("CONFIRM", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        CustomAlertDialog alertDialog = new CustomAlertDialog(ConfirmActivity.this);
-                        AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
-                        progressDialog.show();
-
-                        AlertDialog.Builder okDialog = alertDialog.okDialog("Run Hex :" +run_hex +"\nstatus hex :"+ status_hex);
-                        okDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                runCommand();
-                            }
-                        }).show();
+                        runCommand();
                     }
                 });
 
