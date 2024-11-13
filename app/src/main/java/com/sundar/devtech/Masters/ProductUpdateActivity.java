@@ -34,6 +34,7 @@ import com.sundar.devtech.ConfirmActivity;
 import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.DateAndTime;
 import com.sundar.devtech.SuccessActivity;
 import com.yalantis.ucrop.UCrop;
 
@@ -207,6 +208,8 @@ public class ProductUpdateActivity extends AppCompatActivity {
                     params.put("prod_image", imageStr);
                     params.put("active", active);
                     params.put("user", LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };
@@ -264,6 +267,8 @@ public class ProductUpdateActivity extends AppCompatActivity {
                     params.put("prod_image",  imageStr[0]);
                     params.put("active", active);
                     params.put("user", LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };

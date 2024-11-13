@@ -34,8 +34,11 @@ import com.sundar.devtech.Models.StockModel;
 import com.sundar.devtech.Scanner.CaptureAct;
 import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.CustomAlertDialog;
+import com.sundar.devtech.Services.DateAndTime;
 import com.sundar.devtech.Services.QtyAlertMail;
 import com.sundar.devtech.Services.SendMail;
+
+import org.apache.poi.ss.formula.functions.T;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,15 +55,6 @@ public class ScannerActivity extends AppCompatActivity {
     private boolean isDialogShowing = false;
     private boolean isExitConfirmed = false;
     public static String PREFS_NAME="myProfile";
-
-    private Handler handler = new Handler();
-//    private Runnable alertMailRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            QtyAlertMail.sendAlertMail(ScannerActivity.this);
-//            handler.postDelayed(this, 10800000); // 3 hours in milliseconds
-//        }
-//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,18 +195,12 @@ public class ScannerActivity extends AppCompatActivity {
         super.onStart();
         IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkChangeListener,filter);
-
-//        // Start alert mail task
-//        handler.post(alertMailRunnable);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(networkChangeListener);
-
-//        // Stop alert mail task
-//        handler.removeCallbacks(alertMailRunnable);
     }
 
 }

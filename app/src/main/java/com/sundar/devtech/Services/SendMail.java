@@ -16,15 +16,15 @@ import javax.mail.internet.*;
 
 public class SendMail {
 
-    private final String emailUsername = "sundar3112000@gmail.com";
-    private final String appPassword = "labo oxqy dcga fvoj"; // App-specific password
+    private final String emailUsername = "overdue@pentametal.com.my";
+    private final String appPassword = "Rudybeer#*$QWAni4"; // App-specific password
 
     public Session serverConfiguration(){
         // SMTP server configuration
         Properties properties = new Properties();
         properties.put("mail.smtp.auth", "true");
         properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.host", "mail.pentametal.com.my");
         properties.put("mail.smtp.port", "587");
 
         // Session and authenticator for Gmail

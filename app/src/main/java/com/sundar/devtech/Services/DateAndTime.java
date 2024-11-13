@@ -43,4 +43,18 @@ public class DateAndTime {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(new Date());
     }
+
+    // Correct date format for months
+    public static String getDeviceDate() {
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(date);
+    }
+
+    // Correct method for 12-hour time format
+    public static String getDeviceTime() {
+        Date date = Calendar.getInstance().getTime();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss");
+        return dateFormat.format(date);
+    }
 }

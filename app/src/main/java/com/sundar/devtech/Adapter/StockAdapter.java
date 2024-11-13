@@ -48,6 +48,7 @@ import com.sundar.devtech.Masters.StockActivity;
 import com.sundar.devtech.Models.ProductModel;
 import com.sundar.devtech.Models.StockModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.DateAndTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -464,6 +465,8 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.ViewHolder> 
                     params.put("min_qty", min_qty);
                     params.put("active", active);
                     params.put("user", StockActivity.LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };

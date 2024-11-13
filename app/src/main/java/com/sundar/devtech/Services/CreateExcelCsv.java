@@ -4,6 +4,10 @@ import android.content.Context;
 import android.os.Environment;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+
+import com.sundar.devtech.ConfirmActivity;
+import com.sundar.devtech.Masters.ReportActivity;
 import com.sundar.devtech.Models.ReportModel;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -18,7 +22,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class CreateExcelCsv {
-    public static void saveExcel(Context context, List<ReportModel> reportModels, String fileName, int fileNum) {
+    public static String saveExcel(Context context, List<ReportModel> reportModels, String fileName, int fileNum) {
+
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Report");
 
@@ -53,12 +58,12 @@ public class CreateExcelCsv {
         try (FileOutputStream fos = new FileOutputStream(excelFile)) {
             workbook.write(fos);
             if (fileNum == 1) {
-                Toast.makeText(context, "Excel saved successfully", Toast.LENGTH_SHORT).show();
+                return "1";
             }
         } catch (IOException e) {
             e.printStackTrace();
             if (fileNum == 1) {
-                Toast.makeText(context, "Failed to save Excel: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "Failed to save Excel: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         } finally {
             try {
@@ -67,9 +72,14 @@ public class CreateExcelCsv {
                 e.printStackTrace();
             }
         }
+        return "0";
     }
 
     public static void saveCsv(Context context, List<ReportModel> reportModels, String fileName, int fileNum) {
+        CustomAlertDialog alertDialog = new CustomAlertDialog(context);
+        AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
+        progressDialog.show();
+
         File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "DEVTECH");
         if (!directory.exists()) {
             directory.mkdirs(); // Create directory if it doesn't exist
@@ -90,11 +100,13 @@ public class CreateExcelCsv {
                         .append(report.getTime().toString()).append('\n');
             }
             if (fileNum == 1) {
+                progressDialog.dismiss();
                 Toast.makeText(context, "CSV saved successfully", Toast.LENGTH_SHORT).show();
             }
         } catch (IOException e) {
             e.printStackTrace();
             if (fileNum == 1) {
+                progressDialog.dismiss();
                 Toast.makeText(context, "Failed to save CSV: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
