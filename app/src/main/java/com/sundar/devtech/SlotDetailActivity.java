@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +30,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Masters.MotorMaster;
+import com.sundar.devtech.Masters.ReportActivity;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.Models.ProductModel;
 import com.sundar.devtech.Models.SalesModel;
@@ -36,6 +38,7 @@ import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.MotorService;
 import com.sundar.devtech.Services.QtyAlertMail;
+import com.sundar.devtech.WeeklyReport.scheduleWeeklyEmail;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,7 +46,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SlotDetailActivity extends AppCompatActivity {
     NetworkChangeListener networkChangeListener = new NetworkChangeListener();
@@ -58,13 +63,15 @@ public class SlotDetailActivity extends AppCompatActivity {
     CustomAlertDialog alertDialog;
 
     QtyAlertMail qtyAlertMail = new QtyAlertMail(SlotDetailActivity.this);
-
+    private CountDownTimer countDownTimer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_slot_detail);
 
         motorService = new MotorService(SlotDetailActivity.this);
+        scheduleWeeklyEmail.scheduleWeeklyEmail(SlotDetailActivity.this);
 
         APPBAR_BTN = findViewById(R.id.appbar_btn);
         APPBAR_TITLE = findViewById(R.id.appbarTitle);
@@ -144,6 +151,7 @@ public class SlotDetailActivity extends AppCompatActivity {
         CANCEL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                stopTimer();
                 ActivityMoving.ActivityMoving(SlotDetailActivity.this,ScannerActivity.class);
             }
         });
@@ -163,6 +171,25 @@ public class SlotDetailActivity extends AppCompatActivity {
         });
     }
 
+    private void startTimer() {
+        // Initialize the countdown timer for 1 minute
+        countDownTimer = new CountDownTimer(60000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+            @Override
+            public void onFinish() {
+                ActivityMoving.ActivityMoving(SlotDetailActivity.this, ScannerActivity.class);
+            }
+        }.start();
+    }
+    private void stopTimer() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel(); // Cancel the timer
+            countDownTimer = null;
+        }
+    }
     public void productChecking() {
         String slot_no = SLOT_NUMBERS.getText().toString();
 
@@ -209,6 +236,7 @@ public class SlotDetailActivity extends AppCompatActivity {
                                 }
 
                                 if (!salesModels.isEmpty()) {
+                                    stopTimer();
                                     Intent intent = new Intent(SlotDetailActivity.this, ConfirmActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                     intent.putExtra("emp_id", EMP_ID);
@@ -269,12 +297,20 @@ public class SlotDetailActivity extends AppCompatActivity {
         IntentFilter filter =new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(networkChangeListener,filter);
         qtyAlertMail.select();
+        startTimer();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopTimer();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(networkChangeListener);
+        stopTimer();
     }
     @Override
     public void onBackPressed() {

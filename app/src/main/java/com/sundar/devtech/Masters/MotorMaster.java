@@ -39,6 +39,7 @@ import com.sundar.devtech.Internet.NetworkChangeListener;
 import com.sundar.devtech.Models.EmployeeModel;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.DateAndTime;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -248,6 +249,8 @@ public class MotorMaster extends AppCompatActivity {
                     params.put("status_hex", status_hex);
                     params.put("active", finalActive);
                     params.put("user", LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };

@@ -37,6 +37,7 @@ import com.sundar.devtech.R;
 import com.sundar.devtech.Services.ActivityMoving;
 import com.sundar.devtech.Services.ByteConvertor;
 import com.sundar.devtech.Services.CustomAlertDialog;
+import com.sundar.devtech.Services.DateAndTime;
 import com.sundar.devtech.Services.MotorService;
 
 import org.json.JSONArray;
@@ -192,21 +193,20 @@ public class ConfirmActivity extends AppCompatActivity {
             }
         }).show();
     }
-
-
     public void insert(AlertDialog alertDialog) {
         StringRequest request = new StringRequest(Request.Method.POST, RequestURL.sales_insert,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        if (response.equalsIgnoreCase("success")){
+
+                        if (response.trim().equalsIgnoreCase("success")){
                             alertDialog.dismiss();
                             ActivityMoving.ActivityMoving(ConfirmActivity.this,SuccessActivity.class);
-                            Toast.makeText(ConfirmActivity.this, "Buying Success", Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(ConfirmActivity.this, "Buying Success", Toast.LENGTH_SHORT).show();
                         }
                         else {
                             alertDialog.dismiss();
-                            Toast.makeText(ConfirmActivity.this, "Inserted Failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ConfirmActivity.this, "Buying Failed", Toast.LENGTH_SHORT).show();
                         }
 
                     }
@@ -230,14 +230,14 @@ public class ConfirmActivity extends AppCompatActivity {
                 params.put("prod_id", prod_id);
                 params.put("emp_id",emp_id);
                 params.put("qty", "1");
+                params.put("date", DateAndTime.getDeviceDate());
+                params.put("time", DateAndTime.getDeviceTime());
                 return params;
             }
         };
         RequestQueue requestQueue = Volley.newRequestQueue(ConfirmActivity.this);
         requestQueue.add(request);
     }
-
-
 
     @Override
     protected void onStart() {

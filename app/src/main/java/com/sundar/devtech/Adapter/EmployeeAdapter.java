@@ -32,6 +32,7 @@ import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Masters.EmployeeMaster;
 import com.sundar.devtech.Models.EmployeeModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.DateAndTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -280,6 +281,8 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.ViewHo
                     params.put("mobile", mobile);
                     params.put("active", finalActive);
                     params.put("user", EmployeeMaster.LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };

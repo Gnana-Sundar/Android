@@ -34,6 +34,7 @@ import com.sundar.devtech.Masters.MotorMaster;
 import com.sundar.devtech.Models.EmployeeModel;
 import com.sundar.devtech.Models.MotorModel;
 import com.sundar.devtech.R;
+import com.sundar.devtech.Services.DateAndTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -286,6 +287,8 @@ public class MotorAdapter extends RecyclerView.Adapter<MotorAdapter.ViewHolder>{
                     params.put("status_hex", status_hex);
                     params.put("active", finalActive);
                     params.put("user", MotorMaster.LOGGED_USER);
+                    params.put("date", DateAndTime.getDeviceDate());
+                    params.put("time", DateAndTime.getDeviceTime());
                     return params;
                 }
             };

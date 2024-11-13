@@ -3,8 +3,24 @@ package com.sundar.devtech.Masters;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
+import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.provider.Settings;
+import android.view.View;
+import android.widget.DatePicker;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -16,24 +32,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.DatePickerDialog;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
-import android.view.View;
-import android.widget.DatePicker;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -43,18 +41,16 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.button.MaterialButton;
 import com.sundar.devtech.Adapter.ReportAdapter;
-import com.sundar.devtech.ConfirmActivity;
 import com.sundar.devtech.DatabaseController.RequestURL;
 import com.sundar.devtech.Internet.NetworkChangeListener;
-import com.sundar.devtech.MainActivity;
 import com.sundar.devtech.Models.ReportModel;
 import com.sundar.devtech.R;
 import com.sundar.devtech.Services.CreateExcelCsv;
-import com.sundar.devtech.Services.CreatePdf;
 import com.sundar.devtech.Services.CustomAlertDialog;
 import com.sundar.devtech.Services.DateAndTime;
 import com.sundar.devtech.Services.SendMail;
 import com.sundar.devtech.SplashScreen;
+import com.sundar.devtech.WeeklyReport.scheduleWeeklyEmail;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,6 +62,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.mail.MessagingException;
 
@@ -82,6 +80,9 @@ public class ReportActivity extends AppCompatActivity {
     private Calendar CALENDAR;
     String[] PERMISSION = {READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE};
     private ActivityResultLauncher<Intent> activityResultLauncher;
+    Handler handler = new Handler();
+    private int count = 0;
+    private int totalEmails = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +109,7 @@ public class ReportActivity extends AppCompatActivity {
         REPORT_MANAGER = new GridLayoutManager(ReportActivity.this, 1);
         REPORT_RECYCLER.setLayoutManager(REPORT_MANAGER);
         REPORT = new ArrayList<>();
+
         DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
@@ -176,11 +178,7 @@ public class ReportActivity extends AppCompatActivity {
                     }else  if (REPORT.isEmpty()){
                         Toast.makeText(ReportActivity.this, "Data is Empty", Toast.LENGTH_SHORT).show();
                     }else {
-                        saveReports();
-                        List<String> EMAIL_NAME = SplashScreen.EMAIL_NAME;
-                        for (String email: EMAIL_NAME) {
-                            sendEmailInBackground(email.toString(), "Welcome to PENTA-TVM", "Report Date : "+ DateAndTime.getDate());
-                        }
+                        saveReports(1);
                     }
                 } else {
                     requestPermission();
@@ -200,15 +198,11 @@ public class ReportActivity extends AppCompatActivity {
                     }else  if (REPORT.isEmpty()){
                         Toast.makeText(ReportActivity.this, "Data is Empty", Toast.LENGTH_SHORT).show();
                     }else {
-//                      CreatePdf.createPdf(ReportActivity.this,REPORT,from_date,to_date);
-                        saveReports();
+                        saveReports(0);
                     }
                 } else {
                     requestPermission();
                 }
-
-
-
             }
         });
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -223,10 +217,39 @@ public class ReportActivity extends AppCompatActivity {
             });
     }
 
-    private void saveReports() {
-        // Call save methods for Excel and CSV
-        CreateExcelCsv.saveExcel(this, REPORT, "pentatvm_report.xlsx", 1);
-        CreateExcelCsv.saveCsv(this, REPORT, "pentatvm_report.csv", 1);
+    private void saveReports(int number) {
+        if (number == 1){
+            CreateExcelCsv.saveExcel(this, REPORT, "pentatvm_report.xlsx", 1);
+            List<String> EMAIL_NAME = SplashScreen.EMAIL_NAME;
+
+            totalEmails = EMAIL_NAME.size();
+            count = 0;
+
+            for (String email: EMAIL_NAME) {
+               sendEmailInBackground(email.toString(), "Welcome to PENTA-TVM", "Report Date : "+ DateAndTime.getDate());
+            }
+
+        }else {
+            CustomAlertDialog alertDialog = new CustomAlertDialog(ReportActivity.this);
+            AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
+            progressDialog.show();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    String response = CreateExcelCsv.saveExcel(ReportActivity.this, REPORT, "pentatvm_report.xlsx", 1);
+                    if (response.equals("1")) {
+                        progressDialog.dismiss();
+                        Toast.makeText(ReportActivity.this, "File saved successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        progressDialog.dismiss();
+                        Toast.makeText(ReportActivity.this, "Failed to save Excel", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            },2000);
+
+        }
+
+
     }
 
     // THIS PERMISSION FOR ANDROID 11 AND ABOVE AND BELOW STORAGE PERMISSION
@@ -332,24 +355,35 @@ public class ReportActivity extends AppCompatActivity {
         AlertDialog progressDialog = alertDialog.pleaseWaitDialog();
         progressDialog.show();
 
-        new Thread(() -> {
+        // Use an ExecutorService to run the email sending on a background thread
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
             SendMail mailSender = new SendMail();
             try {
-                mailSender.sendEmailWithAttachment(recipientEmail, subject, bodyText,1);
-                runOnUiThread(() -> showToast("Email sent successfully!"));
-                progressDialog.dismiss();
+                mailSender.sendEmailWithAttachment(recipientEmail, subject, bodyText, 1);
+
+                // Update UI on the main thread after success
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    count++;
+                    if (count == totalEmails) {
+                        Toast.makeText(ReportActivity.this, "Email Send Success", Toast.LENGTH_SHORT).show();
+                    }
+                });
             } catch (MessagingException e) {
                 e.printStackTrace();
-                progressDialog.dismiss();
-                runOnUiThread(() -> showToast("Failed to send email: " + e.getMessage()));
+
+                // Update UI on the main thread after failure
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    count++;
+                    if (count == totalEmails) {
+                        Toast.makeText(ReportActivity.this, "Email Send Failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
-        }).start();
+        });
     }
-
-    private void showToast(String message) {
-        Toast.makeText(ReportActivity.this, message, Toast.LENGTH_SHORT).show();
-    }
-
 
     @Override
     protected void onStart() {

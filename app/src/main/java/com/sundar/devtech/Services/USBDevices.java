@@ -31,7 +31,7 @@ public class USBDevices {
     public void sendCommand(UsbSerialPort serialPort, byte[] command) {
         try {
             serialPort.write(command, command.length);
-            Toast.makeText(context, "Command sent!", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "Command sent!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(context, "Failed to send command", Toast.LENGTH_SHORT).show();
